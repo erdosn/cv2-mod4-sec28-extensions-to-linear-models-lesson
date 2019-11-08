@@ -1,5 +1,7 @@
 
 ### Questions
+- To test for interactions, run an experiment. 
+- When you have an interaction you lose interpretability on the individual columns
 
 ### Objectives
 YWBAT 
@@ -19,6 +21,11 @@ YWBAT
 - Homoskedacicity - want this to be true of the residuals
 - Autocorrelation - no correlation between features and residuals
 
+
+### Keyterms
+- lambda penalty parameter
+- penalty size
+
 ### Outline
 
 
@@ -29,7 +36,6 @@ import numpy as np
 import statsmodels.api as sm
 
 from sklearn.linear_model import Lasso, Ridge, LinearRegression
-from sklearn.datasets import california_housing
 from sklearn.model_selection import train_test_split
 
 
@@ -38,23 +44,7 @@ import matplotlib.pyplot as plt
 
 
 ```python
-cal_housing = california_housing.fetch_california_housing()
-```
-
-    Downloading Cal. housing from https://ndownloader.figshare.com/files/5976036 to /Users/rcarrasco/scikit_learn_data
-
-
-
-```python
-y = cal_housing.target
-X = cal_housing.data
-features = cal_housing.feature_names
-```
-
-
-```python
-df = pd.DataFrame(X, columns=features)
-df['target'] = y
+df = pd.read_csv("data/BNG_cholesterol.csv")
 df.head()
 ```
 
@@ -79,341 +69,107 @@ df.head()
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>MedInc</th>
-      <th>HouseAge</th>
-      <th>AveRooms</th>
-      <th>AveBedrms</th>
-      <th>Population</th>
-      <th>AveOccup</th>
-      <th>Latitude</th>
-      <th>Longitude</th>
-      <th>target</th>
+      <th>age</th>
+      <th>sex</th>
+      <th>cp</th>
+      <th>trestbps</th>
+      <th>fbs</th>
+      <th>restecg</th>
+      <th>thalach</th>
+      <th>exang</th>
+      <th>oldpeak</th>
+      <th>slope</th>
+      <th>ca</th>
+      <th>thal</th>
+      <th>num</th>
+      <th>chol</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>0</td>
-      <td>8.3252</td>
-      <td>41.0</td>
-      <td>6.984127</td>
-      <td>1.023810</td>
-      <td>322.0</td>
-      <td>2.555556</td>
-      <td>37.88</td>
-      <td>-122.23</td>
-      <td>4.526</td>
+      <td>46.950938</td>
+      <td>1</td>
+      <td>1</td>
+      <td>165.981331</td>
+      <td>0</td>
+      <td>2</td>
+      <td>152.691434</td>
+      <td>0</td>
+      <td>1.774223</td>
+      <td>2</td>
+      <td>0</td>
+      <td>7</td>
+      <td>3</td>
+      <td>265.569780</td>
     </tr>
     <tr>
       <td>1</td>
-      <td>8.3014</td>
-      <td>21.0</td>
-      <td>6.238137</td>
-      <td>0.971880</td>
-      <td>2401.0</td>
-      <td>2.109842</td>
-      <td>37.86</td>
-      <td>-122.22</td>
-      <td>3.585</td>
+      <td>47.359284</td>
+      <td>1</td>
+      <td>4</td>
+      <td>134.748286</td>
+      <td>0</td>
+      <td>2</td>
+      <td>132.079047</td>
+      <td>1</td>
+      <td>0.407640</td>
+      <td>2</td>
+      <td>0</td>
+      <td>7</td>
+      <td>0</td>
+      <td>269.368061</td>
     </tr>
     <tr>
       <td>2</td>
-      <td>7.2574</td>
-      <td>52.0</td>
-      <td>8.288136</td>
-      <td>1.073446</td>
-      <td>496.0</td>
-      <td>2.802260</td>
-      <td>37.85</td>
-      <td>-122.24</td>
-      <td>3.521</td>
+      <td>58.455787</td>
+      <td>1</td>
+      <td>4</td>
+      <td>129.456617</td>
+      <td>0</td>
+      <td>0</td>
+      <td>164.523754</td>
+      <td>1</td>
+      <td>5.284900</td>
+      <td>2</td>
+      <td>0</td>
+      <td>7</td>
+      <td>4</td>
+      <td>244.336917</td>
     </tr>
     <tr>
       <td>3</td>
-      <td>5.6431</td>
-      <td>52.0</td>
-      <td>5.817352</td>
-      <td>1.073059</td>
-      <td>558.0</td>
-      <td>2.547945</td>
-      <td>37.85</td>
-      <td>-122.25</td>
-      <td>3.413</td>
+      <td>56.070298</td>
+      <td>1</td>
+      <td>4</td>
+      <td>124.831749</td>
+      <td>0</td>
+      <td>2</td>
+      <td>181.453944</td>
+      <td>0</td>
+      <td>1.096476</td>
+      <td>1</td>
+      <td>1</td>
+      <td>7</td>
+      <td>2</td>
+      <td>237.985356</td>
     </tr>
     <tr>
       <td>4</td>
-      <td>3.8462</td>
-      <td>52.0</td>
-      <td>6.281853</td>
-      <td>1.081081</td>
-      <td>565.0</td>
-      <td>2.181467</td>
-      <td>37.85</td>
-      <td>-122.25</td>
-      <td>3.422</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-### Why don't we want multicollinearity? What does this cause?
-
-Takes away from linear equation
-
-if 2 features f1 and f2 are correlated
-
-yhat = b0 + b1f1 + b2f2
-
-giving these some numbers
-
-
-gallons_per_mile = 2.5 x car_weight + 3.8 x engine_size
-
-increase car_weight by 1 -> gallons_per_mile increasing by 2.5
-
-because these are multicollinear the 2.5 and 3.8 don't mean anything. 
-
-
-```python
-# let's build an OLS model using statsmodels (baseline)
-ols = sm.OLS(y, df.drop("target", axis=1))
-results = ols.fit()
-```
-
-
-```python
-results.summary()
-```
-
-
-
-
-<table class="simpletable">
-<caption>OLS Regression Results</caption>
-<tr>
-  <th>Dep. Variable:</th>            <td>y</td>        <th>  R-squared (uncentered):</th>      <td>   0.892</td> 
-</tr>
-<tr>
-  <th>Model:</th>                   <td>OLS</td>       <th>  Adj. R-squared (uncentered):</th> <td>   0.892</td> 
-</tr>
-<tr>
-  <th>Method:</th>             <td>Least Squares</td>  <th>  F-statistic:       </th>          <td>2.137e+04</td>
-</tr>
-<tr>
-  <th>Date:</th>             <td>Thu, 12 Sep 2019</td> <th>  Prob (F-statistic):</th>           <td>  0.00</td>  
-</tr>
-<tr>
-  <th>Time:</th>                 <td>17:33:56</td>     <th>  Log-Likelihood:    </th>          <td> -24087.</td> 
-</tr>
-<tr>
-  <th>No. Observations:</th>      <td> 20640</td>      <th>  AIC:               </th>          <td>4.819e+04</td>
-</tr>
-<tr>
-  <th>Df Residuals:</th>          <td> 20632</td>      <th>  BIC:               </th>          <td>4.825e+04</td>
-</tr>
-<tr>
-  <th>Df Model:</th>              <td>     8</td>      <th>                     </th>              <td> </td>    
-</tr>
-<tr>
-  <th>Covariance Type:</th>      <td>nonrobust</td>    <th>                     </th>              <td> </td>    
-</tr>
-</table>
-<table class="simpletable">
-<tr>
-       <td></td>         <th>coef</th>     <th>std err</th>      <th>t</th>      <th>P>|t|</th>  <th>[0.025</th>    <th>0.975]</th>  
-</tr>
-<tr>
-  <th>MedInc</th>     <td>    0.5135</td> <td>    0.004</td> <td>  120.594</td> <td> 0.000</td> <td>    0.505</td> <td>    0.522</td>
-</tr>
-<tr>
-  <th>HouseAge</th>   <td>    0.0157</td> <td>    0.000</td> <td>   33.727</td> <td> 0.000</td> <td>    0.015</td> <td>    0.017</td>
-</tr>
-<tr>
-  <th>AveRooms</th>   <td>   -0.1825</td> <td>    0.006</td> <td>  -29.673</td> <td> 0.000</td> <td>   -0.195</td> <td>   -0.170</td>
-</tr>
-<tr>
-  <th>AveBedrms</th>  <td>    0.8651</td> <td>    0.030</td> <td>   28.927</td> <td> 0.000</td> <td>    0.806</td> <td>    0.924</td>
-</tr>
-<tr>
-  <th>Population</th> <td> 7.792e-06</td> <td> 5.09e-06</td> <td>    1.530</td> <td> 0.126</td> <td>-2.19e-06</td> <td> 1.78e-05</td>
-</tr>
-<tr>
-  <th>AveOccup</th>   <td>   -0.0047</td> <td>    0.001</td> <td>   -8.987</td> <td> 0.000</td> <td>   -0.006</td> <td>   -0.004</td>
-</tr>
-<tr>
-  <th>Latitude</th>   <td>   -0.0639</td> <td>    0.004</td> <td>  -17.826</td> <td> 0.000</td> <td>   -0.071</td> <td>   -0.057</td>
-</tr>
-<tr>
-  <th>Longitude</th>  <td>   -0.0164</td> <td>    0.001</td> <td>  -14.381</td> <td> 0.000</td> <td>   -0.019</td> <td>   -0.014</td>
-</tr>
-</table>
-<table class="simpletable">
-<tr>
-  <th>Omnibus:</th>       <td>4353.392</td> <th>  Durbin-Watson:     </th> <td>   0.909</td> 
-</tr>
-<tr>
-  <th>Prob(Omnibus):</th>  <td> 0.000</td>  <th>  Jarque-Bera (JB):  </th> <td>14087.489</td>
-</tr>
-<tr>
-  <th>Skew:</th>           <td> 1.069</td>  <th>  Prob(JB):          </th> <td>    0.00</td> 
-</tr>
-<tr>
-  <th>Kurtosis:</th>       <td> 6.436</td>  <th>  Cond. No.          </th> <td>1.03e+04</td> 
-</tr>
-</table><br/><br/>Warnings:<br/>[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.<br/>[2] The condition number is large, 1.03e+04. This might indicate that there are<br/>strong multicollinearity or other numerical problems.
-
-
-
-Skewness of 1.069 is a bit positively skewed. But pretty close to 0. 
-
-Kurtosis of 6.436 means that we have a lot of outliers. 
-
-
-```python
-df.corr()
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>MedInc</th>
-      <th>HouseAge</th>
-      <th>AveRooms</th>
-      <th>AveBedrms</th>
-      <th>Population</th>
-      <th>AveOccup</th>
-      <th>Latitude</th>
-      <th>Longitude</th>
-      <th>target</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>MedInc</td>
-      <td>1.000000</td>
-      <td>-0.119034</td>
-      <td>0.326895</td>
-      <td>-0.062040</td>
-      <td>0.004834</td>
-      <td>0.018766</td>
-      <td>-0.079809</td>
-      <td>-0.015176</td>
-      <td>0.688075</td>
-    </tr>
-    <tr>
-      <td>HouseAge</td>
-      <td>-0.119034</td>
-      <td>1.000000</td>
-      <td>-0.153277</td>
-      <td>-0.077747</td>
-      <td>-0.296244</td>
-      <td>0.013191</td>
-      <td>0.011173</td>
-      <td>-0.108197</td>
-      <td>0.105623</td>
-    </tr>
-    <tr>
-      <td>AveRooms</td>
-      <td>0.326895</td>
-      <td>-0.153277</td>
-      <td>1.000000</td>
-      <td>0.847621</td>
-      <td>-0.072213</td>
-      <td>-0.004852</td>
-      <td>0.106389</td>
-      <td>-0.027540</td>
-      <td>0.151948</td>
-    </tr>
-    <tr>
-      <td>AveBedrms</td>
-      <td>-0.062040</td>
-      <td>-0.077747</td>
-      <td>0.847621</td>
-      <td>1.000000</td>
-      <td>-0.066197</td>
-      <td>-0.006181</td>
-      <td>0.069721</td>
-      <td>0.013344</td>
-      <td>-0.046701</td>
-    </tr>
-    <tr>
-      <td>Population</td>
-      <td>0.004834</td>
-      <td>-0.296244</td>
-      <td>-0.072213</td>
-      <td>-0.066197</td>
-      <td>1.000000</td>
-      <td>0.069863</td>
-      <td>-0.108785</td>
-      <td>0.099773</td>
-      <td>-0.024650</td>
-    </tr>
-    <tr>
-      <td>AveOccup</td>
-      <td>0.018766</td>
-      <td>0.013191</td>
-      <td>-0.004852</td>
-      <td>-0.006181</td>
-      <td>0.069863</td>
-      <td>1.000000</td>
-      <td>0.002366</td>
-      <td>0.002476</td>
-      <td>-0.023737</td>
-    </tr>
-    <tr>
-      <td>Latitude</td>
-      <td>-0.079809</td>
-      <td>0.011173</td>
-      <td>0.106389</td>
-      <td>0.069721</td>
-      <td>-0.108785</td>
-      <td>0.002366</td>
-      <td>1.000000</td>
-      <td>-0.924664</td>
-      <td>-0.144160</td>
-    </tr>
-    <tr>
-      <td>Longitude</td>
-      <td>-0.015176</td>
-      <td>-0.108197</td>
-      <td>-0.027540</td>
-      <td>0.013344</td>
-      <td>0.099773</td>
-      <td>0.002476</td>
-      <td>-0.924664</td>
-      <td>1.000000</td>
-      <td>-0.045967</td>
-    </tr>
-    <tr>
-      <td>target</td>
-      <td>0.688075</td>
-      <td>0.105623</td>
-      <td>0.151948</td>
-      <td>-0.046701</td>
-      <td>-0.024650</td>
-      <td>-0.023737</td>
-      <td>-0.144160</td>
-      <td>-0.045967</td>
-      <td>1.000000</td>
+      <td>44.121116</td>
+      <td>1</td>
+      <td>4</td>
+      <td>109.887955</td>
+      <td>0</td>
+      <td>2</td>
+      <td>110.055090</td>
+      <td>1</td>
+      <td>0.437412</td>
+      <td>2</td>
+      <td>0</td>
+      <td>3</td>
+      <td>1</td>
+      <td>245.907334</td>
     </tr>
   </tbody>
 </table>
@@ -423,13 +179,14 @@ df.corr()
 
 
 ```python
-X = df.drop(["target", "AveRooms", "Latitude", "Longitude"], axis=1)
-y = df.target
+features_to_use = ['exang', 'fbs', 'restecg', 'thal']
+target = ['chol']
+```
 
-ols = sm.OLS(y, X)
-results = ols.fit()
 
-results.summary()
+```python
+linreg = sm.OLS(df[target], df[df.drop(columns=['chol']).columns]).fit()
+linreg.summary()
 ```
 
 
@@ -438,167 +195,249 @@ results.summary()
 <table class="simpletable">
 <caption>OLS Regression Results</caption>
 <tr>
-  <th>Dep. Variable:</th>         <td>target</td>      <th>  R-squared (uncentered):</th>      <td>   0.884</td> 
+  <th>Dep. Variable:</th>          <td>chol</td>       <th>  R-squared (uncentered):</th>       <td>   0.959</td>  
 </tr>
 <tr>
-  <th>Model:</th>                   <td>OLS</td>       <th>  Adj. R-squared (uncentered):</th> <td>   0.884</td> 
+  <th>Model:</th>                   <td>OLS</td>       <th>  Adj. R-squared (uncentered):</th>  <td>   0.959</td>  
 </tr>
 <tr>
-  <th>Method:</th>             <td>Least Squares</td>  <th>  F-statistic:       </th>          <td>3.140e+04</td>
+  <th>Method:</th>             <td>Least Squares</td>  <th>  F-statistic:       </th>           <td>1.800e+06</td> 
 </tr>
 <tr>
-  <th>Date:</th>             <td>Thu, 12 Sep 2019</td> <th>  Prob (F-statistic):</th>           <td>  0.00</td>  
+  <th>Date:</th>             <td>Fri, 08 Nov 2019</td> <th>  Prob (F-statistic):</th>            <td>  0.00</td>   
 </tr>
 <tr>
-  <th>Time:</th>                 <td>17:38:19</td>     <th>  Log-Likelihood:    </th>          <td> -24870.</td> 
+  <th>Time:</th>                 <td>13:25:26</td>     <th>  Log-Likelihood:    </th>          <td>-5.3515e+06</td>
 </tr>
 <tr>
-  <th>No. Observations:</th>      <td> 20640</td>      <th>  AIC:               </th>          <td>4.975e+04</td>
+  <th>No. Observations:</th>      <td>1000000</td>     <th>  AIC:               </th>           <td>1.070e+07</td> 
 </tr>
 <tr>
-  <th>Df Residuals:</th>          <td> 20635</td>      <th>  BIC:               </th>          <td>4.979e+04</td>
+  <th>Df Residuals:</th>          <td>999987</td>      <th>  BIC:               </th>           <td>1.070e+07</td> 
 </tr>
 <tr>
-  <th>Df Model:</th>              <td>     5</td>      <th>                     </th>              <td> </td>    
+  <th>Df Model:</th>              <td>    13</td>      <th>                     </th>               <td> </td>     
 </tr>
 <tr>
-  <th>Covariance Type:</th>      <td>nonrobust</td>    <th>                     </th>              <td> </td>    
+  <th>Covariance Type:</th>      <td>nonrobust</td>    <th>                     </th>               <td> </td>     
 </tr>
 </table>
 <table class="simpletable">
 <tr>
-       <td></td>         <th>coef</th>     <th>std err</th>      <th>t</th>      <th>P>|t|</th>  <th>[0.025</th>    <th>0.975]</th>  
+      <td></td>        <th>coef</th>     <th>std err</th>      <th>t</th>      <th>P>|t|</th>  <th>[0.025</th>    <th>0.975]</th>  
 </tr>
 <tr>
-  <th>MedInc</th>     <td>    0.4210</td> <td>    0.003</td> <td>  165.642</td> <td> 0.000</td> <td>    0.416</td> <td>    0.426</td>
+  <th>age</th>      <td>    1.4258</td> <td>    0.005</td> <td>  285.707</td> <td> 0.000</td> <td>    1.416</td> <td>    1.436</td>
 </tr>
 <tr>
-  <th>HouseAge</th>   <td>    0.0160</td> <td>    0.000</td> <td>   45.980</td> <td> 0.000</td> <td>    0.015</td> <td>    0.017</td>
+  <th>sex</th>      <td>  -13.2932</td> <td>    0.115</td> <td> -115.276</td> <td> 0.000</td> <td>  -13.519</td> <td>  -13.067</td>
 </tr>
 <tr>
-  <th>AveBedrms</th>  <td>   -0.0185</td> <td>    0.010</td> <td>   -1.902</td> <td> 0.057</td> <td>   -0.038</td> <td>    0.001</td>
+  <th>cp</th>       <td>    5.8796</td> <td>    0.054</td> <td>  109.203</td> <td> 0.000</td> <td>    5.774</td> <td>    5.985</td>
 </tr>
 <tr>
-  <th>Population</th> <td> 1.665e-05</td> <td>  4.6e-06</td> <td>    3.618</td> <td> 0.000</td> <td> 7.63e-06</td> <td> 2.57e-05</td>
+  <th>trestbps</th> <td>    0.6679</td> <td>    0.002</td> <td>  283.377</td> <td> 0.000</td> <td>    0.663</td> <td>    0.672</td>
 </tr>
 <tr>
-  <th>AveOccup</th>   <td>   -0.0047</td> <td>    0.001</td> <td>   -8.713</td> <td> 0.000</td> <td>   -0.006</td> <td>   -0.004</td>
+  <th>fbs</th>      <td>    3.4092</td> <td>    0.142</td> <td>   24.068</td> <td> 0.000</td> <td>    3.132</td> <td>    3.687</td>
+</tr>
+<tr>
+  <th>restecg</th>  <td>    7.3749</td> <td>    0.052</td> <td>  143.157</td> <td> 0.000</td> <td>    7.274</td> <td>    7.476</td>
+</tr>
+<tr>
+  <th>thalach</th>  <td>    0.2956</td> <td>    0.002</td> <td>  159.151</td> <td> 0.000</td> <td>    0.292</td> <td>    0.299</td>
+</tr>
+<tr>
+  <th>exang</th>    <td>    2.8243</td> <td>    0.118</td> <td>   23.995</td> <td> 0.000</td> <td>    2.594</td> <td>    3.055</td>
+</tr>
+<tr>
+  <th>oldpeak</th>  <td>    0.2527</td> <td>    0.048</td> <td>    5.252</td> <td> 0.000</td> <td>    0.158</td> <td>    0.347</td>
+</tr>
+<tr>
+  <th>slope</th>    <td>    2.3585</td> <td>    0.085</td> <td>   27.851</td> <td> 0.000</td> <td>    2.193</td> <td>    2.524</td>
+</tr>
+<tr>
+  <th>ca</th>       <td>    7.0432</td> <td>    0.058</td> <td>  121.056</td> <td> 0.000</td> <td>    6.929</td> <td>    7.157</td>
+</tr>
+<tr>
+  <th>thal</th>     <td>    1.6654</td> <td>    0.030</td> <td>   55.635</td> <td> 0.000</td> <td>    1.607</td> <td>    1.724</td>
+</tr>
+<tr>
+  <th>num</th>      <td>    0.6076</td> <td>    0.043</td> <td>   14.289</td> <td> 0.000</td> <td>    0.524</td> <td>    0.691</td>
 </tr>
 </table>
 <table class="simpletable">
 <tr>
-  <th>Omnibus:</th>       <td>4262.669</td> <th>  Durbin-Watson:     </th> <td>   0.758</td>
+  <th>Omnibus:</th>       <td>72929.043</td> <th>  Durbin-Watson:     </th> <td>   2.001</td> 
 </tr>
 <tr>
-  <th>Prob(Omnibus):</th>  <td> 0.000</td>  <th>  Jarque-Bera (JB):  </th> <td>9935.375</td>
+  <th>Prob(Omnibus):</th>  <td> 0.000</td>   <th>  Jarque-Bera (JB):  </th> <td>96856.071</td>
 </tr>
 <tr>
-  <th>Skew:</th>           <td> 1.167</td>  <th>  Prob(JB):          </th> <td>    0.00</td>
+  <th>Skew:</th>           <td> 0.648</td>   <th>  Prob(JB):          </th> <td>    0.00</td> 
 </tr>
 <tr>
-  <th>Kurtosis:</th>       <td> 5.471</td>  <th>  Cond. No.          </th> <td>3.16e+03</td>
+  <th>Kurtosis:</th>       <td> 3.803</td>   <th>  Cond. No.          </th> <td>    576.</td> 
 </tr>
-</table><br/><br/>Warnings:<br/>[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.<br/>[2] The condition number is large, 3.16e+03. This might indicate that there are<br/>strong multicollinearity or other numerical problems.
+</table><br/><br/>Warnings:<br/>[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 
 
 
-### What is the goal of linear regression?
+### What is statsmodels doing under the hood to find the coefficients
+- It's performing gradient descent
 
-Predict a target based on features
+### In OLS as dimensions increase, what happens?
+- Increase the complexity of the model
+- Increase the possibility of multicollinearity
+- Increase your chances of overfitting
 
-What are we using to make these predictions?
-- Parameters, also known as, coefficients, also known as, weights
+### The problem with Gradient Descent, is...prone to overfitting, because all it wants to do is minimize error. 
 
+# This is where we introduce a penalty $\lambda$ 
 
-How do we find the best parameters?
-- Something to do with smallest error...yes that is true
-- Least Mean Squared Error...
-- The best way to find Parameters is using Gradient Descent
+### The penalty will penalize your loss based on number of parameters of our model
 
+Example
 
-### What is Gradient Descent?
-- is a Process
-- What are the ingredients for Gradient Descent?
-    - initial guess of our Parameters
-    - Loss Function -> Way of Calculating Error
-    - You update weights based on gradient of Error w/ respect to Parameters
-    - Then weights with the lowest error are chosen
+**Regular Loss Function**
+    - MSE
+    
+**Penalized Loss Function L1-Lasso**
 
-### What happens in linear regression is if I add hundreds of features...
+$$\lambda = \sum{\bar{\beta_i}}$$
 
-- You overfit, but your r2 goes up and error goes down
-    - and gradient descent is trying to minimize error
-- this is where ridge and lasso come in
-    - these punish using a lot of parameters
-    - what else do these do?
-        - ensures optimal parameters
-        - prevents us from overfitting
+    - MSE + `np.sum(np.abs(Beta_coeffients))`
+    
+**Penalized Loss Function L2 - Ridge**
+ 
+$$\lambda =  \sum{\beta_i^2}$$
+
+    - MSE + `np.sum(Beta_coeffients**2)`
+
+### Ridge and Lasso regression effect our cost function
 
 
 ```python
-xtrain, xtest, ytrain, ytest = train_test_split(df.drop('target', axis=1), df.target, test_size=0.20)
-```
-
-### Out of the box linear regerssion
-
-
-```python
-linreg = LinearRegression()
-linreg.fit(xtrain, ytrain)
-linreg.score(xtest, ytest)
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
 ```
 
 
-
-
-    0.6200923803673022
-
-
+```python
+X = df.drop(columns=['chol', 'age', 'sex'])
+y = df['chol']
+```
 
 
 ```python
-plt.bar(features, linreg.coef_)
-plt.xticks(range(len(linreg.coef_)), features, rotation=70)
+lr = LinearRegression()
+lr.fit(X, y)
+```
+
+
+
+
+    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=None, normalize=False)
+
+
+
+# Plot coefficients
+
+
+```python
+cols = X.columns
+coeffs = lr.coef_
+```
+
+
+```python
+plt.figure(figsize=(8, 5))
+plt.bar(cols, np.abs(coeffs))
+plt.xticks(rotation=90)
 plt.show()
 ```
 
 
-![png](lesson-plan_files/lesson-plan_19_0.png)
+![png](lesson-plan_files/lesson-plan_18_0.png)
 
 
-### Ridge regression
+## let's repeat this for Lasso Regression
+- Fewer betas that are significant
+- Smaller beta values from previous LR have disappeared
 
 
 ```python
-ridge = Ridge(alpha=10.0)
-ridge.fit(xtrain, ytrain)
+lr = Lasso()
+lr.fit(X, y)
 
-ridge.score(xtest, ytest)
+cols = X.columns
+coeffs = lr.coef_
+
+plt.figure(figsize=(8, 5))
+plt.bar(cols, np.abs(coeffs))
+plt.xticks(rotation=90)
+plt.show()
 ```
 
 
+![png](lesson-plan_files/lesson-plan_20_0.png)
 
 
-    0.620053583047234
-
-
+### let's repeat this for Ridge
 
 
 ```python
-ridge.coef_.sum()
+lr = Ridge()
+lr.fit(X, y)
+
+cols = X.columns
+coeffs = lr.coef_
+
+plt.figure(figsize=(8, 5))
+plt.bar(cols, np.abs(coeffs))
+plt.xticks(rotation=90)
+plt.show()
 ```
 
 
-
-
-    0.08746926231461982
-
+![png](lesson-plan_files/lesson-plan_22_0.png)
 
 
 
 ```python
-plt.bar(features, ridge.coef_)
-plt.xticks(range(len(ridge.coef_)), features, rotation=70)
+lr = Lasso()
+lr.fit(X, y)
+
+cols = X.columns
+coeffs = lr.coef_
+
+plt.figure(figsize=(8, 5))
+plt.bar(cols, np.abs(coeffs))
+plt.title("Lasso Regression")
+plt.xticks(rotation=90)
+plt.show()
+
+lr = LinearRegression()
+lr.fit(X, y)
+
+cols = X.columns
+coeffs = lr.coef_
+
+plt.figure(figsize=(8, 5))
+plt.bar(cols, np.abs(coeffs))
+plt.xticks(rotation=90)
+plt.title("Linear Regression")
+plt.show()
+
+lr = Ridge()
+lr.fit(X, y)
+
+cols = X.columns
+coeffs = lr.coef_
+
+plt.figure(figsize=(8, 5))
+plt.bar(cols, np.abs(coeffs))
+plt.title("Ridge Regression")
+plt.xticks(rotation=90)
 plt.show()
 ```
 
@@ -606,43 +445,13 @@ plt.show()
 ![png](lesson-plan_files/lesson-plan_23_0.png)
 
 
-### Lasso 
 
-
-```python
-lasso = Lasso(alpha=0.5)
-lasso.fit(xtrain, ytrain)
-
-lasso.score(xtest, ytest)
-```
+![png](lesson-plan_files/lesson-plan_23_1.png)
 
 
 
+![png](lesson-plan_files/lesson-plan_23_2.png)
 
-    0.4601413921538754
-
-
-
-
-```python
-plt.bar(features, lasso.coef_)
-plt.xticks(range(len(lasso.coef_)), features, rotation=70)
-plt.show()
-```
-
-
-![png](lesson-plan_files/lesson-plan_26_0.png)
-
-
-
-```python
-
-```
-
-
-```python
-
-```
 
 ### Some Formulas
 
@@ -659,50 +468,48 @@ plt.show()
 
 
 
-### Still need to plan
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-### Some deep thinking
-
-Why would one want to use ridge over lasso over no penalty regression? What do these affect? Why are these important?
-
-
-```python
-
-```
-
-
-```python
-
-```
-
 ### Assessment
 
 ### What did we learn
-- The issues with linear regression
-    - residuals need to be normal
-    - We need multicollinearity
-- Learned about Gradient Descent
-    - That it's a process of finding the least amount of error by finding the best parameters
-- Lasso and Ridge Regression
-    - Help us find best parameters by penalizing the number of parameters we use
-    - Prevent overfitting
+- What is the difference between Ridge and Lasso?
+    - Lasso penalizes with sum of abs values of parameters
+    - Ridge penalizes with sum of square values of parameters
+    - Lasso eliminates coefficients < 1
+    - Ridge is more forgiving of smaller coefficients
+- In general, you should standardize data and compare models as usual
+
+
+```python
+coeffients = [6, 10, 2.4, 0.5, 0.2, 0.9, 0.52, 3]
+
+l1 = np.sum(np.abs(coeffients))
+
+l2 = np.sum(np.power(coeffients, 2))
+
+l1, l2
+```
+
+
+
+
+    (23.52, 152.13039999999998)
+
+
+
+
+```python
+np.power(coeffients, 2)
+```
+
+
+
+
+    array([3.600e+01, 1.000e+02, 5.760e+00, 2.500e-01, 4.000e-02, 8.100e-01,
+           2.704e-01, 9.000e+00])
+
+
+
+
+```python
+
+```
